@@ -58,7 +58,8 @@ export class BScroll extends EventEmitter {
       },
       HWCompositing: true,
       useTransition: true,
-      useTransform: true
+      useTransform: true,
+      useScrollbar: true
     };
 
     extend(this.options, options);
@@ -90,6 +91,8 @@ export class BScroll extends EventEmitter {
     }
 
     this.refresh();
+
+    this.options.useScrollbar && this._createScrollbar();
 
     if (!this.options.snap) {
       this.scrollTo(this.options.startX, this.options.startY);
@@ -496,7 +499,6 @@ export class BScroll extends EventEmitter {
       this.moved = true;
       this.trigger('scrollStart');
     }
-
     this._translate(newX, newY);
 
     if (timestamp - this.startTime > this.options.momentumLimitTime) {
@@ -668,6 +670,7 @@ export class BScroll extends EventEmitter {
 
     function probe() {
       let pos = me.getComputedPosition();
+      me.options.useScrollbar && me._translateScrollbar(pos);
       me.trigger('scroll', pos);
       if (me.isInTransition) {
         me.probeTimer = requestAnimationFrame(probe);
@@ -739,6 +742,43 @@ export class BScroll extends EventEmitter {
 
     this.x = x;
     this.y = y;
+  }
+
+  // 创建滚动条
+  _createScrollbar() {
+    var style = {
+      position: 'absolute',
+      top: '1px',
+      right: '1px',
+      width: '3px',
+      minHeight: '20px',
+      backgroundColor: '#ccc',
+      borderRadius: '3px'
+    };
+    this.scrollbarHeight = Math.ceil(Math.abs(this.wrapperHeight / this.maxScrollY * this.wrapperHeight));
+    style.height = this.scrollbarHeight + 'px';
+    this.scrollbar = document.createElement('div');
+    this.scrollbar.setAttribute('class', 'scrollbar');
+    for (let [key, value] of Object.entries(style)) {
+      this.scrollbar.style[key] = value;
+    }
+    this.wrapper.appendChild(this.scrollbar);
+  }
+
+  _translateScrollbar(pos) {
+    console.log(pos);
+    var x = pos.x;
+    var y = pos.y;
+    var scrollbarY = Math.min(Math.max(y / this.maxScrollY * this.wrapperHeight - this.scrollbarHeight / 2, 1), this.wrapperHeight - this.scrollbarHeight - 2);
+    console.log(scrollbarY);
+    if (this.options.useTransform) {
+      this.scrollbar.style[style.transform] = 'translate(' + x + 'px,' + scrollbarY + 'px)' + this.translateZ;
+    } else {
+      x = Math.round(x);
+      y = Math.round(y);
+      this.scrollerStyle.left = x + 'px';
+      this.scrollerStyle.top = y + 'px';
+    }
   }
 
   enable() {
