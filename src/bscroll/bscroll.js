@@ -410,6 +410,8 @@ export class BScroll extends EventEmitter {
     this.pointY = point.pageY;
 
     this.trigger('beforeScrollStart');
+
+    this.scrollbar && this._toggleScrollbar(true);
   }
 
   _move(e) {
@@ -649,6 +651,8 @@ export class BScroll extends EventEmitter {
       x: this.x,
       y: this.y
     });
+    debugger;
+    this.scrollbar && this._toggleScrollbar(false);
   }
 
   _resize() {
@@ -720,6 +724,7 @@ export class BScroll extends EventEmitter {
         x: this.x,
         y: this.y
       });
+      this.scrollbar && this._toggleScrollbar(false);
     }
   }
 
@@ -753,7 +758,11 @@ export class BScroll extends EventEmitter {
       width: '3px',
       minHeight: '20px',
       backgroundColor: '#ccc',
-      borderRadius: '3px'
+      borderRadius: '3px',
+      transitionTimingFunction: 'ease-out',
+      transitionDuration: '0.5s',
+      transitionProperty: 'all',
+      opacity: 0
     };
     this.scrollbarHeight = Math.ceil(Math.abs(this.wrapperHeight / this.maxScrollY * this.wrapperHeight));
     style.height = this.scrollbarHeight + 'px';
@@ -766,11 +775,9 @@ export class BScroll extends EventEmitter {
   }
 
   _translateScrollbar(pos) {
-    console.log(pos);
     var x = pos.x;
     var y = pos.y;
     var scrollbarY = Math.min(Math.max(y / this.maxScrollY * this.wrapperHeight - this.scrollbarHeight / 2, 1), this.wrapperHeight - this.scrollbarHeight - 2);
-    console.log(scrollbarY);
     if (this.options.useTransform) {
       this.scrollbar.style[style.transform] = 'translate(' + x + 'px,' + scrollbarY + 'px)' + this.translateZ;
     } else {
@@ -779,6 +786,10 @@ export class BScroll extends EventEmitter {
       this.scrollerStyle.left = x + 'px';
       this.scrollerStyle.top = y + 'px';
     }
+  }
+
+  _toggleScrollbar(v) {
+    this.scrollbar.style.opacity = v ? 1 : 0;
   }
 
   enable() {
